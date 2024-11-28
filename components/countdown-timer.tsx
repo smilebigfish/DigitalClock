@@ -36,7 +36,13 @@ function DigitalNumber({ number, isEnding, isFlashing }: { number: number; isEnd
   )
 }
 
-const presetColors = ['#000000', '#1E1E1E', '#2C2C2C', '#3A3A3A', '#484848'];
+const presetColors = [
+  '#aaaaaa', // 淺灰色
+  '#311b92', // 深紫色
+  '#004d40', // 深綠色
+  '#b71c1c', // 深紅色
+  '#263238'  // 深灰色
+];
 
 const getDefaultEventTime = () => {
   const date = new Date();
@@ -61,11 +67,12 @@ export default function CountdownTimer() {
   const [currentEvent, setCurrentEvent] = useState<CountdownEvent | null>(null)
   const [newEvent, setNewEvent] = useState<Partial<CountdownEvent>>(() => getDefaultNewEvent())
   const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [backgroundColor, setBackgroundColor] = useState('#000000')
+  const [backgroundColor, setBackgroundColor] = useState('#aaaaaa')
   const [recentColors, setRecentColors] = useState<string[]>([])
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null)
   const [isEnding, setIsEnding] = useState(false)
   const [isFlashing, setIsFlashing] = useState(false)
+  const [isCustomColor, setIsCustomColor] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -130,11 +137,11 @@ export default function CountdownTimer() {
         targetDate: newEvent.targetDate
       }
       setEvents(events.map(e => e.id === newEvent.id ? updatedEvent : e))
-      
+
       if (currentEvent?.id === newEvent.id) {
         setCurrentEvent(updatedEvent)
       }
-      
+
       setNewEvent(getDefaultNewEvent())
       setIsDialogOpen(false)
     }
@@ -154,8 +161,19 @@ export default function CountdownTimer() {
   const handleColorChange = (color: string) => {
     setBackgroundColor(color)
     setBackgroundImage(null)
-    if (!recentColors.includes(color)) {
-      setRecentColors(prevColors => [color, ...prevColors.slice(0, 4)])
+    setIsCustomColor(true)
+
+    const colorIndex = recentColors.indexOf(color)
+
+    if (colorIndex !== -1) {
+      const updatedColors = [
+        color,
+        ...recentColors.slice(0, colorIndex),
+        ...recentColors.slice(colorIndex + 1)
+      ].slice(0, 5)
+      setRecentColors(updatedColors)
+    } else {
+      setRecentColors(prevColors => [color, ...prevColors].slice(0, 5))
     }
   }
 
@@ -176,15 +194,22 @@ export default function CountdownTimer() {
 
   const handleDateChange = (date: Date | null) => {
     if (date) {
-      setNewEvent({...newEvent, targetDate: date})
+      setNewEvent({ ...newEvent, targetDate: date })
     }
+  }
+
+  const handleResetColors = () => {
+    setBackgroundColor(presetColors[0])
+    setRecentColors([])
+    setIsCustomColor(false)
+    setBackgroundImage(null)
   }
 
   return (
     <div className="wrap">
-      <div 
-        className="timer-container" 
-        style={{ 
+      <div
+        className="timer-container"
+        style={{
           backgroundColor: backgroundImage ? 'rgba(0,0,0,0.5)' : backgroundColor,
           backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none',
           backgroundSize: 'cover',
@@ -228,19 +253,28 @@ export default function CountdownTimer() {
             <Button variant="outline">Change Background</Button>
           </PopoverTrigger>
           <PopoverContent className="w-80">
-            <div className="flex flex-col space-y-4">
-              <Label htmlFor="custom-color">Custom Color</Label>
+            <div className="color-picker-content">
+              <div className="color-picker-header">
+                <Label htmlFor="custom-color">Custom Color</Label>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleResetColors}
+                >
+                  Reset
+                </Button>
+              </div>
               <Input
                 id="custom-color"
                 type="color"
                 value={backgroundColor}
                 onChange={(e) => handleColorChange(e.target.value)}
               />
-              <div className="flex flex-wrap gap-2">
-                {[...presetColors, ...recentColors].map((color) => (
+              <div className="color-presets">
+                {(recentColors.length > 0 ? recentColors : presetColors).map((color) => (
                   <button
                     key={color}
-                    className="w-8 h-8 rounded-full border border-gray-300"
+                    className={`color-preset-button ${backgroundColor === color ? 'active' : ''}`}
                     style={{ backgroundColor: color }}
                     onClick={() => handleColorChange(color)}
                   />
@@ -302,7 +336,7 @@ export default function CountdownTimer() {
               <Input
                 id="title"
                 value={newEvent.title || ''}
-                onChange={(e) => setNewEvent({...newEvent, title: e.target.value})}
+                onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
                 className="col-span-3"
               />
             </div>
