@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { Plus, Edit, Trash2, Play, ImageIcon } from 'lucide-react'
+import { Plus, Edit, Trash2, Play, ImageIcon, Moon, Sun } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -22,9 +22,9 @@ interface CountdownEvent {
   targetDate: Date;
 }
 
-function DigitalNumber({ number, isEnding, isFlashing }: { number: number; isEnding: boolean; isFlashing: boolean }) {
+function DigitalNumber({ number, isEnding, isFlashing, isLightMode }: { number: number; isEnding: boolean; isFlashing: boolean; isLightMode: boolean }) {
   return (
-    <div className={`digitalitem num-${number} ${isEnding ? 'ending' : ''} ${isFlashing ? 'flashing' : ''}`}>
+    <div className={`digitalitem num-${number} ${isEnding ? 'ending' : ''} ${isFlashing ? 'flashing' : ''} ${isLightMode ? 'light-mode' : ''}`}>
       <div className="digitalbody h1"></div>
       <div className="digitalbody h2"></div>
       <div className="digitalbody h3"></div>
@@ -73,6 +73,7 @@ export default function CountdownTimer() {
   const [isEnding, setIsEnding] = useState(false)
   const [isFlashing, setIsFlashing] = useState(false)
   const [isCustomColor, setIsCustomColor] = useState(false)
+  const [isLightMode, setIsLightMode] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -205,6 +206,10 @@ export default function CountdownTimer() {
     setBackgroundImage(null)
   }
 
+  const toggleNumberStyle = () => {
+    setIsLightMode(prev => !prev);
+  };
+
   return (
     <div className="wrap">
       <div
@@ -219,29 +224,29 @@ export default function CountdownTimer() {
         <div className="timer-content">
           <div className="time-block">
             <div className="time-display">
-              <DigitalNumber number={Math.floor(timeLeft.days / 10)} isEnding={isEnding} isFlashing={isFlashing} />
-              <DigitalNumber number={timeLeft.days % 10} isEnding={isEnding} isFlashing={isFlashing} />
+              <DigitalNumber number={Math.floor(timeLeft.days / 10)} isEnding={isEnding} isFlashing={isFlashing} isLightMode={isLightMode} />
+              <DigitalNumber number={timeLeft.days % 10} isEnding={isEnding} isFlashing={isFlashing} isLightMode={isLightMode} />
             </div>
             <div className="time-label">DAY</div>
           </div>
           <div className="time-block">
             <div className="time-display">
-              <DigitalNumber number={Math.floor(timeLeft.hours / 10)} isEnding={isEnding} isFlashing={isFlashing} />
-              <DigitalNumber number={timeLeft.hours % 10} isEnding={isEnding} isFlashing={isFlashing} />
+              <DigitalNumber number={Math.floor(timeLeft.hours / 10)} isEnding={isEnding} isFlashing={isFlashing} isLightMode={isLightMode} />
+              <DigitalNumber number={timeLeft.hours % 10} isEnding={isEnding} isFlashing={isFlashing} isLightMode={isLightMode} />
             </div>
             <div className="time-label">HOUR</div>
           </div>
           <div className="time-block">
             <div className="time-display">
-              <DigitalNumber number={Math.floor(timeLeft.minutes / 10)} isEnding={isEnding} isFlashing={isFlashing} />
-              <DigitalNumber number={timeLeft.minutes % 10} isEnding={isEnding} isFlashing={isFlashing} />
+              <DigitalNumber number={Math.floor(timeLeft.minutes / 10)} isEnding={isEnding} isFlashing={isFlashing} isLightMode={isLightMode} />
+              <DigitalNumber number={timeLeft.minutes % 10} isEnding={isEnding} isFlashing={isFlashing} isLightMode={isLightMode} />
             </div>
             <div className="time-label">MIN</div>
           </div>
           <div className="time-block">
             <div className="time-display">
-              <DigitalNumber number={Math.floor(timeLeft.seconds / 10)} isEnding={isEnding} isFlashing={isFlashing} />
-              <DigitalNumber number={timeLeft.seconds % 10} isEnding={isEnding} isFlashing={isFlashing} />
+              <DigitalNumber number={Math.floor(timeLeft.seconds / 10)} isEnding={isEnding} isFlashing={isFlashing} isLightMode={isLightMode} />
+              <DigitalNumber number={timeLeft.seconds % 10} isEnding={isEnding} isFlashing={isFlashing} isLightMode={isLightMode} />
             </div>
             <div className="time-label">SEC</div>
           </div>
@@ -300,6 +305,14 @@ export default function CountdownTimer() {
             </div>
           </PopoverContent>
         </Popover>
+        <Button 
+          variant="outline" 
+          size="icon"
+          onClick={toggleNumberStyle}
+          className="ml-2"
+        >
+          {isLightMode ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+        </Button>
       </div>
       <div className="events-list">
         {events.map(event => (

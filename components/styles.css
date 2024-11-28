@@ -122,6 +122,7 @@
   position: absolute;
   background-color: rgba(60, 60, 60, 1);
   box-shadow: -1px 1px 5px rgba(0, 0, 0, 0.6);
+  transition: all 0.3s ease;
 }
 
 /* 水平線段加粗 */
@@ -266,5 +267,73 @@
 
 .timer-container:not([style*="url"]) {
   background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* 修改數字基本樣式 */
+.digitalbody {
+  position: absolute;
+  background-color: rgba(60, 60, 60, 1);
+  box-shadow: -1px 1px 5px rgba(0, 0, 0, 0.6);
+  transition: all 0.3s ease;
+}
+
+/* 明亮模式的數字樣式 */
+.light-mode .digitalbody {
+  background-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+}
+
+/* 明亮模式的不透明部分 */
+.light-mode .num-0 > .h2,
+.light-mode .num-1 > .h1,
+.light-mode .num-1 > .h2,
+.light-mode .num-1 > .h3,
+.light-mode .num-1 > .v1,
+.light-mode .num-1 > .v3,
+.light-mode .num-2 > .v1,
+.light-mode .num-2 > .v4,
+.light-mode .num-3 > .v1,
+.light-mode .num-3 > .v3,
+.light-mode .num-4 > .h1,
+.light-mode .num-4 > .h3,
+.light-mode .num-4 > .v3,
+.light-mode .num-5 > .v2,
+.light-mode .num-5 > .v3,
+.light-mode .num-6 > .v2,
+.light-mode .num-7 > .h2,
+.light-mode .num-7 > .h3,
+.light-mode .num-7 > .v1,
+.light-mode .num-7 > .v3,
+.light-mode .num-9 > .v3 {
+  opacity: 0.1;
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* 明亮模式的結束效果 */
+.light-mode .ending .digitalbody {
+  background-color: rgba(255, 255, 255, 1);
+  box-shadow: 0 0 12px rgba(255, 255, 0, 0.7);
+}
+
+/* 明亮模式的閃爍效果 */
+@keyframes flash-light {
+  0%, 100% {
+    background-color: rgba(255, 255, 255, 1);
+    box-shadow: 0 0 16px rgba(255, 255, 255, 0.8);
+  }
+  50% {
+    background-color: rgba(255, 200, 200, 1);
+    box-shadow: 0 0 8px rgba(255, 200, 200, 0.5);
+  }
+}
+
+.light-mode .flashing .digitalbody {
+  animation: flash-light 0.5s infinite;
+}
+
+/* 調整標籤顏色 */
+.light-mode .time-label {
+  color: rgba(255, 255, 255, 1);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
