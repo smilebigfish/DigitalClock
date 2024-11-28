@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { Plus, Edit, Trash2, Play, ImageIcon, Moon, Sun } from 'lucide-react'
+import { Plus, Edit, Trash2, Play, ImageIcon, Moon, Sun, Clock } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -56,6 +56,57 @@ const getDefaultNewEvent = () => ({
   targetDate: getDefaultEventTime()
 });
 
+const TimeBlock = ({ value, label, isEnding, isFlashing, isLightMode }: {
+  value: number;
+  label: string;
+  isEnding: boolean;
+  isFlashing: boolean;
+  isLightMode: boolean;
+}) => (
+  <div className="time-block">
+    <div className="time-display">
+      <DigitalNumber number={Math.floor(value / 10)} isEnding={isEnding} isFlashing={isFlashing} isLightMode={isLightMode} />
+      <DigitalNumber number={value % 10} isEnding={isEnding} isFlashing={isFlashing} isLightMode={isLightMode} />
+    </div>
+    <div className="time-label">{label}</div>
+  </div>
+);
+
+const DateDisplay = ({ isLightMode, is12Hour }: { 
+  isLightMode: boolean;
+  is12Hour: boolean;
+}) => {
+  const [date, setDate] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setDate(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const weekDay = date.toLocaleDateString('en-US', { weekday: 'short' });
+  const dateStr = date.toLocaleDateString('zh-TW', { 
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+
+  return (
+    <div className={`date-display ${isLightMode ? 'light-mode' : ''}`}>
+      <div className="date">{dateStr}</div>
+      <div className="weekday">
+        {weekDay.toUpperCase()}
+        {is12Hour && (
+          <span className={`ampm-indicator ${isLightMode ? 'light-mode' : ''}`}>
+            {new Date().getHours() >= 12 ? 'PM' : 'AM'}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+};
+
 export default function CountdownTimer() {
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
@@ -74,6 +125,8 @@ export default function CountdownTimer() {
   const [isFlashing, setIsFlashing] = useState(false)
   const [isCustomColor, setIsCustomColor] = useState(false)
   const [isLightMode, setIsLightMode] = useState(false)
+  const [isClockMode, setIsClockMode] = useState(false);
+  const [is12Hour, setIs12Hour] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -107,6 +160,26 @@ export default function CountdownTimer() {
 
     return () => clearInterval(timer)
   }, [currentEvent])
+
+  useEffect(() => {
+    if (!isClockMode) return;
+
+    const timer = setInterval(() => {
+      const now = new Date();
+      let hours = now.getHours();
+      if (is12Hour) {
+        hours = hours % 12 || 12;  // 轉換為12小時制
+      }
+      setTimeLeft({
+        days: 0,
+        hours,
+        minutes: now.getMinutes(),
+        seconds: now.getSeconds()
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [isClockMode, is12Hour]);
 
   const handleAddEvent = () => {
     if (newEvent.title && newEvent.targetDate) {
@@ -157,6 +230,7 @@ export default function CountdownTimer() {
 
   const handleStartCountdown = (event: CountdownEvent) => {
     setCurrentEvent(event)
+    setIsClockMode(false)
   }
 
   const handleColorChange = (color: string) => {
@@ -210,6 +284,17 @@ export default function CountdownTimer() {
     setIsLightMode(prev => !prev);
   };
 
+  const toggleClockMode = () => {
+    setIsClockMode(prev => !prev);
+    if (currentEvent) {
+      setCurrentEvent(null);
+    }
+  };
+
+  const toggleTimeFormat = () => {
+    setIs12Hour(prev => !prev);
+  };
+
   return (
     <div className="wrap">
       <div
@@ -222,97 +307,171 @@ export default function CountdownTimer() {
         }}
       >
         <div className="timer-content">
-          <div className="time-block">
-            <div className="time-display">
-              <DigitalNumber number={Math.floor(timeLeft.days / 10)} isEnding={isEnding} isFlashing={isFlashing} isLightMode={isLightMode} />
-              <DigitalNumber number={timeLeft.days % 10} isEnding={isEnding} isFlashing={isFlashing} isLightMode={isLightMode} />
+          {isClockMode && (
+            <div className="clock-extra-info">
+              <DateDisplay isLightMode={isLightMode} is12Hour={is12Hour} />
             </div>
-            <div className="time-label">DAY</div>
-          </div>
-          <div className="time-block">
-            <div className="time-display">
-              <DigitalNumber number={Math.floor(timeLeft.hours / 10)} isEnding={isEnding} isFlashing={isFlashing} isLightMode={isLightMode} />
-              <DigitalNumber number={timeLeft.hours % 10} isEnding={isEnding} isFlashing={isFlashing} isLightMode={isLightMode} />
-            </div>
-            <div className="time-label">HOUR</div>
-          </div>
-          <div className="time-block">
-            <div className="time-display">
-              <DigitalNumber number={Math.floor(timeLeft.minutes / 10)} isEnding={isEnding} isFlashing={isFlashing} isLightMode={isLightMode} />
-              <DigitalNumber number={timeLeft.minutes % 10} isEnding={isEnding} isFlashing={isFlashing} isLightMode={isLightMode} />
-            </div>
-            <div className="time-label">MIN</div>
-          </div>
-          <div className="time-block">
-            <div className="time-display">
-              <DigitalNumber number={Math.floor(timeLeft.seconds / 10)} isEnding={isEnding} isFlashing={isFlashing} isLightMode={isLightMode} />
-              <DigitalNumber number={timeLeft.seconds % 10} isEnding={isEnding} isFlashing={isFlashing} isLightMode={isLightMode} />
-            </div>
-            <div className="time-label">SEC</div>
-          </div>
+          )}
+          {!isClockMode && (
+            <TimeBlock
+              value={timeLeft.days}
+              label="DAY"
+              isEnding={isEnding}
+              isFlashing={isFlashing}
+              isLightMode={isLightMode}
+            />
+          )}
+          <TimeBlock
+            value={timeLeft.hours}
+            label="HOUR"
+            isEnding={isEnding}
+            isFlashing={isFlashing}
+            isLightMode={isLightMode}
+          />
+          <TimeBlock
+            value={timeLeft.minutes}
+            label="MIN"
+            isEnding={isEnding}
+            isFlashing={isFlashing}
+            isLightMode={isLightMode}
+          />
+          <TimeBlock
+            value={timeLeft.seconds}
+            label="SEC"
+            isEnding={isEnding}
+            isFlashing={isFlashing}
+            isLightMode={isLightMode}
+          />
         </div>
       </div>
-      <div className="color-picker">
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="outline">Change Background</Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-80">
-            <div className="color-picker-content">
-              <div className="color-picker-header">
-                <Label htmlFor="custom-color">Custom Color</Label>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleResetColors}
-                >
-                  Reset
-                </Button>
-              </div>
-              <Input
-                id="custom-color"
-                type="color"
-                value={backgroundColor}
-                onChange={(e) => handleColorChange(e.target.value)}
-              />
-              <div className="color-presets">
-                {(recentColors.length > 0 ? recentColors : presetColors).map((color) => (
-                  <button
-                    key={color}
-                    className={`color-preset-button ${backgroundColor === color ? 'active' : ''}`}
-                    style={{ backgroundColor: color }}
-                    onClick={() => handleColorChange(color)}
-                  />
-                ))}
-              </div>
-              <Label htmlFor="image-url">Image URL</Label>
-              <Input
-                id="image-url"
-                type="text"
-                placeholder="Enter image URL"
-                onChange={(e) => handleImageUrl(e.target.value)}
-              />
-              <Button onClick={() => fileInputRef.current?.click()}>
-                <ImageIcon className="mr-2 h-4 w-4" /> Upload Image
+      <div className="actions-container">
+        <div className="action-group">
+          <div className="action-buttons">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={toggleNumberStyle}
+            >
+              {isLightMode ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={toggleClockMode}
+              className={isClockMode ? 'bg-accent' : ''}
+            >
+              <Clock className="h-4 w-4" />
+            </Button>
+            {isClockMode && (
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={toggleTimeFormat}
+              >
+                {is12Hour ? '24H' : '12H'}
               </Button>
-              <input
-                type="file"
-                ref={fileInputRef}
-                style={{ display: 'none' }}
-                onChange={handleImageUpload}
-                accept="image/*"
-              />
-            </div>
-          </PopoverContent>
-        </Popover>
-        <Button 
-          variant="outline" 
-          size="icon"
-          onClick={toggleNumberStyle}
-          className="ml-2"
-        >
-          {isLightMode ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
-        </Button>
+            )}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline"><ImageIcon /></Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80">
+                <div className="color-picker-content">
+                  <div className="color-picker-header">
+                    <Label htmlFor="custom-color">Custom Color</Label>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleResetColors}
+                    >
+                      Reset
+                    </Button>
+                  </div>
+                  <Input
+                    id="custom-color"
+                    type="color"
+                    value={backgroundColor}
+                    onChange={(e) => handleColorChange(e.target.value)}
+                  />
+                  <div className="color-presets">
+                    {(recentColors.length > 0 ? recentColors : presetColors).map((color) => (
+                      <button
+                        key={color}
+                        className={`color-preset-button ${backgroundColor === color ? 'active' : ''}`}
+                        style={{ backgroundColor: color }}
+                        onClick={() => handleColorChange(color)}
+                      />
+                    ))}
+                  </div>
+                  <Label htmlFor="image-url">Image URL</Label>
+                  <Input
+                    id="image-url"
+                    type="text"
+                    placeholder="Enter image URL"
+                    onChange={(e) => handleImageUrl(e.target.value)}
+                  />
+                  <Button onClick={() => fileInputRef.current?.click()}>
+                    <ImageIcon className="mr-2 h-4 w-4" /> Upload Image
+                  </Button>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    style={{ display: 'none' }}
+                    onChange={handleImageUpload}
+                    accept="image/*"
+                  />
+                </div>
+              </PopoverContent>
+            </Popover>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={() => setNewEvent(getDefaultNewEvent())}>
+                  <Plus />
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>{newEvent.id ? 'Edit Event' : 'Add New Event'}</DialogTitle>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="title" className="text-right">
+                      Title
+                    </Label>
+                    <Input
+                      id="title"
+                      value={newEvent.title || ''}
+                      onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
+                      className="col-span-3"
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="date" className="text-right">
+                      Date
+                    </Label>
+                    <div className="col-span-3">
+                      <DatePicker
+                        selected={newEvent.targetDate}
+                        onChange={handleDateChange}
+                        showTimeSelect
+                        timeFormat="HH:mm"
+                        timeIntervals={15}
+                        dateFormat="yyyy/MM/dd HH:mm"
+                        className="w-full rounded-md border border-input bg-background px-3 py-2"
+                        placeholderText="選擇日期和時間"
+                        locale="zh-TW"
+                        timeCaption="時間"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <Button onClick={newEvent.id ? handleUpdateEvent : handleAddEvent}>
+                  {newEvent.id ? 'Update' : 'Add'} Event
+                </Button>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
       </div>
       <div className="events-list">
         {events.map(event => (
@@ -331,53 +490,6 @@ export default function CountdownTimer() {
           </div>
         ))}
       </div>
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogTrigger asChild>
-          <Button onClick={() => setNewEvent(getDefaultNewEvent())}>
-            <Plus className="mr-2 h-4 w-4" /> Add Event
-          </Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{newEvent.id ? 'Edit Event' : 'Add New Event'}</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="title" className="text-right">
-                Title
-              </Label>
-              <Input
-                id="title"
-                value={newEvent.title || ''}
-                onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="date" className="text-right">
-                Date
-              </Label>
-              <div className="col-span-3">
-                <DatePicker
-                  selected={newEvent.targetDate}
-                  onChange={handleDateChange}
-                  showTimeSelect
-                  timeFormat="HH:mm"
-                  timeIntervals={15}
-                  dateFormat="yyyy/MM/dd HH:mm"
-                  className="w-full rounded-md border border-input bg-background px-3 py-2"
-                  placeholderText="選擇日期和時間"
-                  locale="zh-TW"
-                  timeCaption="時間"
-                />
-              </div>
-            </div>
-          </div>
-          <Button onClick={newEvent.id ? handleUpdateEvent : handleAddEvent}>
-            {newEvent.id ? 'Update' : 'Add'} Event
-          </Button>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }
