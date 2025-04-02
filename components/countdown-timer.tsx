@@ -11,7 +11,7 @@ import './styles.css'
 import DatePicker from 'react-datepicker'
 import "react-datepicker/dist/react-datepicker.css"
 import { registerLocale, setDefaultLocale } from "react-datepicker"
-import { zhTW } from 'date-fns/locale'
+import { zhTW } from 'date-fns/locale/zh-TW'
 
 registerLocale('zh-TW', zhTW)
 setDefaultLocale('zh-TW')
